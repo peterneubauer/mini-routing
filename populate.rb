@@ -32,6 +32,8 @@ class Waypoint
     x_B = RADIUS_EARTH * cLa2 * Math.cos( longitude2 )
     y_B = RADIUS_EARTH * cLa2 * Math.sin( longitude2 )
     z_B = RADIUS_EARTH * Math.sin( latitude2 )
+    
+    #in meters
     distance = Math.sqrt( ( x_A - x_B ) * ( x_A - x_B ) + ( y_A - y_B ) * ( y_A - y_B ) + ( z_A - z_B ) * ( z_A - z_B ) )
     self.roads.new(other).update(:cost => distance)
   end
