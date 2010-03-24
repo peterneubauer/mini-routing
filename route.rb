@@ -57,20 +57,25 @@ end
 class Waypoint
   include Neo4j::NodeMixin
   
+  #neo4j node properties
   property :lat, :lon, :name
-  index :name
-  has_n(:roads).to(Waypoint).relationship(Road)
   
-  #we right now just calculate the straight distance as cost
+  #lucene indexed node properties
+  index :name
+  
+  #relationships to other waypoints
+  has_n(:road).to(Waypoint).relationship(Road)
+  
+  #ight now just calculate the straight distance between points as cost
   def connect(other)
-    self.roads.new(other).update(:cost => distance(self.lat, self.lon, other.lat, other.lon))
+    self.road.new(other).update(:cost => distance(self.lat, self.lon, other.lat, other.lon))
   end
   def to_s
     "Waypoint, #{name}, lon=#{lon}, lat=#{lat}"
   end
 end
 
-
+#create point, and look up the locatoin via Yahoo! MapsService
 def create_waypoint(city, state)
   url = "http://local.yahooapis.com/MapsService/V1/geocode?appid=#{APP_ID}"
   res = Net::HTTP.get(URI.parse( URI.escape(url + "&state=#{state}&city=#{city}") ))
@@ -99,7 +104,7 @@ end
 #Finding the route
 
 #Java classes used
-sp = AStar.new( Neo4j::instance, RelationshipExpander.forTypes( DynamicRelationshipType.withName('Waypoint#roads'), Direction::BOTH),
+sp = AStar.new( Neo4j::instance, RelationshipExpander.forTypes( DynamicRelationshipType.withName('Waypoint#road'), Direction::BOTH),
 				        DoubleEvaluator.new("cost") , GeoCostEvaluator.new)
 path = sp.findSinglePath(NYC._java_node, SF._java_node)
 nodes = path.getNodes.iterator
