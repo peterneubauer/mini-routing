@@ -62,7 +62,7 @@ end
 APP_ID = 'JzJ0LQ_V34EWH5agHt7TZxD0Eqz2CoEkX.xAM9y8PeAIjYALdy4C9Psh0pcZ1t6dpPf9zxXXjICw'
 RADIUS_EARTH = 6371*1000 #in meters
 
-def createWaypoint(city, state)
+def create_waypoint(city, state)
   url = "http://local.yahooapis.com/MapsService/V1/geocode?appid=#{APP_ID}"
   res = Net::HTTP.get(URI.parse( URI.escape(url + "&state=#{state}&city=#{city}") ))
   
@@ -74,11 +74,11 @@ def createWaypoint(city, state)
 end
 
 Neo4j::Transaction.run do
-  NYC = createWaypoint('New York', 'New York')
-  KAN = createWaypoint('Kansas City', 'Kansas')
-  SFE = createWaypoint('Santa Fe', 'New Mexico')
-  SEA = createWaypoint('Seattle', 'Washington')
-  SF = createWaypoint('San Francisco', 'CA')
+  NYC = create_waypoint('New York', 'New York')
+  KAN = create_waypoint('Kansas City', 'Kansas')
+  SFE = create_waypoint('Santa Fe', 'New Mexico')
+  SEA = create_waypoint('Seattle', 'Washington')
+  SF = create_waypoint('San Francisco', 'CA')
   NYC.connect(KAN)
   NYC.connect(SEA)
   SEA.connect(SF)
