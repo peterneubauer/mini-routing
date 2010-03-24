@@ -1,0 +1,17 @@
+= Mini Routing Example with Neo4j
+this is a small routing example, populating a Neo4j node space witha  couple of towns using the Yahoo! geocoding service, and then doing a A* routing on it.
+= Running
+
+	myComputer$ rm -rf tmp/ && jruby route.rb 
+
+and you should get something like
+
+	Waypoint, New York, lon=-74.007124, lat=40.714550
+	Waypoint, Kansas City, lon=-94.626824, lat=39.113380
+	Waypoint, Santa Fe, lon=-105.937406, lat=35.691543
+	Waypoint, Seattle, lon=-122.329439, lat=47.603560
+	Waypoint, San Francisco, lon=-122.420139, lat=37.779600
+	New York
+	Kansas City
+	Santa Fe
+	San Francisco
