@@ -7,8 +7,10 @@ include Java
 Dir["lib/*.jar"].each { |jar| 
   require jar 
 }
+APP_ID = 'JzJ0LQ_V34EWH5agHt7TZxD0Eqz2CoEkX.xAM9y8PeAIjYALdy4C9Psh0pcZ1t6dpPf9zxXXjICw'
+RADIUS_EARTH = 6371*1000 #in meters
 
-
+#shortcuts for verbose Java stuff
 AStar = Java::org.neo4j.graphalgo.shortestpath.AStar
 RelationshipExpander = Java::org.neo4j.graphalgo.RelationshipExpander
 Direction = Java::org.neo4j.graphdb.Direction
@@ -16,7 +18,16 @@ DynamicRelationshipType = Java::org.neo4j.graphdb.DynamicRelationshipType
 DoubleEvaluator = Java::org.neo4j.graphalgo.shortestpath.std.DoubleEvaluator
 EstimateEvaluator = Java::org.neo4j.graphalgo.shortestpath.EstimateEvaluator
 
+#implements a Java Interface
+class GeoCostEvaluator
+  include org.neo4j.graphalgo.shortestpath.EstimateEvaluator
+  def getCost(node, goal)
+    distance(node.getProperty("lat"), node.getProperty("lon"), goal.getProperty("lat"),goal.getProperty("lon"))
+  end
+end
 
+
+#calculates a geodetic distance between two spatial points
 def distance(start_lat, start_lon, other_lat, other_lon)
   latitude1 = start_lat.to_f * Math::PI/180 #in radian
   longitude1 = start_lon.to_f * Math::PI/180 #in radian
@@ -36,7 +47,7 @@ def distance(start_lat, start_lon, other_lat, other_lon)
   distance = Math.sqrt( ( x_A - x_B ) * ( x_A - x_B ) + ( y_A - y_B ) * ( y_A - y_B ) + ( z_A - z_B ) * ( z_A - z_B ) )
 end
 
-
+#domain model
 class Road
   include Neo4j::RelationshipMixin
   
@@ -59,8 +70,6 @@ class Waypoint
   end
 end
 
-APP_ID = 'JzJ0LQ_V34EWH5agHt7TZxD0Eqz2CoEkX.xAM9y8PeAIjYALdy4C9Psh0pcZ1t6dpPf9zxXXjICw'
-RADIUS_EARTH = 6371*1000 #in meters
 
 def create_waypoint(city, state)
   url = "http://local.yahooapis.com/MapsService/V1/geocode?appid=#{APP_ID}"
@@ -73,6 +82,7 @@ def create_waypoint(city, state)
   point
 end
 
+#populating the routing test
 Neo4j::Transaction.run do
   NYC = create_waypoint('New York', 'New York')
   KAN = create_waypoint('Kansas City', 'Kansas')
@@ -86,16 +96,9 @@ Neo4j::Transaction.run do
   SFE.connect(SF)
 end
 
+#Finding the route
 
-class GeoCostEvaluator
-  include org.neo4j.graphalgo.shortestpath.EstimateEvaluator
-  def getCost(node, goal)
-    distance(node.getProperty("lat"), node.getProperty("lon"), goal.getProperty("lat"),goal.getProperty("lon"))
-  end
-end
-
-
-
+#Java classes used
 sp = AStar.new( Neo4j::instance, RelationshipExpander.forTypes( DynamicRelationshipType.withName('Waypoint#roads'), Direction::BOTH),
 				        DoubleEvaluator.new("cost") , GeoCostEvaluator.new)
 path = sp.findSinglePath(NYC._java_node, SF._java_node)
