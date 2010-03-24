@@ -3,6 +3,25 @@ require 'uri'
 require "rubygems"
 require 'neo4j'
 
+def distance(start, other)
+  latitude1 = start.lat.to_f * Math::PI/180 #in radian
+  longitude1 = start.lon.to_f * Math::PI/180 #in radian
+  latitude2 = other.lat.to_f * Math::PI/180 #in radian
+  longitude2 = other.lon.to_f * Math::PI/180 #in radian
+  cLa1 = Math.cos( latitude1 );
+  x_A = RADIUS_EARTH * cLa1 * Math.cos( longitude1 )
+  y_A = RADIUS_EARTH * cLa1 * Math.sin( longitude1 )
+  z_A = RADIUS_EARTH * Math.sin( latitude1 );
+
+  cLa2 = Math.cos( latitude2 );
+  x_B = RADIUS_EARTH * cLa2 * Math.cos( longitude2 )
+  y_B = RADIUS_EARTH * cLa2 * Math.sin( longitude2 )
+  z_B = RADIUS_EARTH * Math.sin( latitude2 )
+  
+  #in meters
+  distance = Math.sqrt( ( x_A - x_B ) * ( x_A - x_B ) + ( y_A - y_B ) * ( y_A - y_B ) + ( z_A - z_B ) * ( z_A - z_B ) )
+end
+
 
 class Road
   include Neo4j::RelationshipMixin
@@ -19,23 +38,7 @@ class Waypoint
   
   #we right now just calculate the straight distance as cost
   def connect(other)
-    latitude1 = lat.to_f * Math::PI/180 #in radian
-    longitude1 = lon.to_f * Math::PI/180 #in radian
-    latitude2 = other.lat.to_f * Math::PI/180 #in radian
-    longitude2 = other.lon.to_f * Math::PI/180 #in radian
-    cLa1 = Math.cos( latitude1 );
-    x_A = RADIUS_EARTH * cLa1 * Math.cos( longitude1 )
-    y_A = RADIUS_EARTH * cLa1 * Math.sin( longitude1 )
-    z_A = RADIUS_EARTH * Math.sin( latitude1 );
-
-    cLa2 = Math.cos( latitude2 );
-    x_B = RADIUS_EARTH * cLa2 * Math.cos( longitude2 )
-    y_B = RADIUS_EARTH * cLa2 * Math.sin( longitude2 )
-    z_B = RADIUS_EARTH * Math.sin( latitude2 )
-    
-    #in meters
-    distance = Math.sqrt( ( x_A - x_B ) * ( x_A - x_B ) + ( y_A - y_B ) * ( y_A - y_B ) + ( z_A - z_B ) * ( z_A - z_B ) )
-    self.roads.new(other).update(:cost => distance)
+    self.roads.new(other).update(:cost => distance(self, other))
   end
 end
 
